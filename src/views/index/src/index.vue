@@ -40,7 +40,6 @@ export default {
 
   },
   beforeMount(){
-    // this.userInfo()
     this.refreshPage() 
     this.menuData = this.$store.state.dynamicRouter
   },
@@ -51,21 +50,6 @@ export default {
     }
   },
   methods: {
-    //进入页面时判断用户信息
-    userInfo(){
-      debugger
-      let userName = sessionStorage.getItem("userName")
-      let userToken = sessionStorage.getItem("userToken")
-      let userRouter = JSON.parse(sessionStorage.getItem("userRouter"))
-      if(userName != null && userToken != "" && userRouter.length != 0){
-        this.$store.dispatch("setUser",userName)
-        this.$store.dispatch('setToken',userToken)
-        this.$store.dispatch('setRouter',userRouter)
-      }else{
-        this.$store.dispatch("setUser",null)
-      }
-      return this.$store.state.isLogin
-    },
     //进入页面时进行tab赋值
     refreshPage(){
       this.$store.commit('delete_tabs_all')
