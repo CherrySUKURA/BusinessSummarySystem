@@ -44,12 +44,12 @@ export default new Vuex.Store({
       }else if( user == null){
         //登出的时候清空sessionStorage里的状态
         sessionStorage.setItem("userName",null);
-        sessionStorage.setItem("userToken","");
-        sessionStorage.setItem("userRouter",[])
+        sessionStorage.setItem("userToken",null);
+        sessionStorage.setItem("userRouter",null)
         state.curentUser = null;
+        state.token = null;
+        state.dynamicRouter = null;
         state.isLogin = false;
-        state.token = ""
-        state.dynamicRouter = []
       }
     },
     //token
@@ -70,7 +70,8 @@ export default new Vuex.Store({
     },
     setRouter( {commit},list){
       commit('routerList',list)
-    }
+    },
+
   },
   modules: {
   }

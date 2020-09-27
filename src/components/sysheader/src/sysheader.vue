@@ -44,6 +44,7 @@ export default {
         },
         logout(){
             this.$store.commit('delete_tabs_all')
+            this.$store.dispatch('setUser')
             this.$router.push('/login')
         }
     }

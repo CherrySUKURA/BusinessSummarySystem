@@ -104,46 +104,16 @@ export default {
             return true
         },
         loginHttpRequest(loadingInstance){//登录请求
-            let addroute = []
             sessionStorage.setItem("userName",this.form.username)
             sessionStorage.setItem("userToken",this.token)
             sessionStorage.setItem('userRouter',JSON.stringify(this.menuData))
-            this.$store.dispatch("setUser",this.form.username)
-            this.$store.dispatch('setToken',this.token)
-            this.$store.dispatch('setRouter',this.menuData)
-            this.filtration(addroute,JSON.parse(sessionStorage.getItem('userRouter')))
-            this.addrouter(addroute)
             this.$router.push('/')
-            console.log(4)
             loadingInstance.close()
         },
         Loading(){//登录加载
             let loadingInstance = this.$loading(this.options)
             return loadingInstance
         },
-        filtration (addroute,dynamicRouter) {
-            console.log(1)
-            for( let item of dynamicRouter){
-                addroute.push(
-                {
-                    name: item.name,
-                    path: item.path,
-                    component: () => import(`@/${item.component}`)
-                }
-                )
-            }
-        },
-        addrouter(addroute){
-            this.$router.addRoutes([
-                {
-                path: '/',
-                name: 'Index',
-                component: () => import('@/views/index'),
-                redirect:'/contractmanagement', 
-                children: addroute
-                }
-            ])
-        }
     }
 }
 </script>

@@ -60,7 +60,7 @@ export default {
       }else{
         this.$store.commit('add_tabs', {path: '/contractmanagement', name: '合同管理'});
         this.$store.commit('set_active_index', '/contractmanagement');
-        this.$router.push('/'); 
+        this.$router.push('/contractmanagement'); 
       }
     }
   }
