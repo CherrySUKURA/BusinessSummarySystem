@@ -4,8 +4,10 @@
             <el-form :model="departments" :inline="true" label-width="80px">
                 <el-row :gutter="10">
                     <el-col :span="8">
-                        <el-form-item label="金额分成">
-                            <el-input></el-input>
+                        <el-form-item label="公司名称">
+                            <el-select>
+                                <el-option>热浪设计</el-option>
+                            </el-select>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -63,5 +65,13 @@ export default {
 </script>
 
 <style scoped>
-
+    .el-form-item{
+        display: flex!important;
+    }
+    .el-form-item>>>.el-form-item__content{
+        flex: 1;
+    }
+    .el-select,.el-input {
+        width: 100%;
+    }
 </style>
