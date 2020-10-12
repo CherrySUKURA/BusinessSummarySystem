@@ -20,7 +20,7 @@ const router = new VueRouter({
 //跳转拦截器
 router.beforeEach( (to,from,next) => {
     //如果已经登录，已经存入sessionstroage
-    if( getToken() !== 'null'){
+    if(getToken()){
       //如果跳转的是登录页面就是直接放行
       if(to.path === '/login'){
         next()
@@ -55,13 +55,25 @@ export default router
 function filtration (dynamicRouter) {
   let addroute = []
   for( let item of dynamicRouter){
-    addroute.push(
-      {
-        name: item.name,
-        path: item.path,
-        component: () => import(`@/${item.component}`)
+    if(item.children != 'false'){
+      for( let itemchild of item.children){
+        addroute.push(
+          {
+            name: itemchild.name,
+            path: itemchild.path,
+            component: () => import(`@/${itemchild.component}`)
+          }
+        )
       }
-    )
+    }else{
+      addroute.push(
+        {
+          name: item.name,
+          path: item.path,
+          component: () => import(`@/${item.component}`)
+        }
+      )
+    }
   }
   return addroute
 }

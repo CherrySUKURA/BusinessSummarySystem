@@ -2,20 +2,33 @@
     <div class="contractmanagement">
         <!-- 表单查询 -->
         <div class="seachBtn">
-            <el-form label-position="right" label-width="100px" :inline="true" :model="formInline">
-                <el-form-item label="审批人">
-                    <el-input v-model="formInline.user" placeholder="审批人"></el-input>
-                </el-form-item>
-                <el-form-item label="活动区域">
-                    <el-select v-model="formInline.region" placeholder="活动区域">
-                        <el-option label="区域一" value="shanghai"></el-option>
-                        <el-option label="区域二" value="beijing"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item style="padding: 0 100px">
-                    <el-button type="primary" @click="onSubmit">查询合同</el-button>
-                    <el-button type="primary" @click="open('新建合同',)">新建合同</el-button>
-                </el-form-item>
+            <el-form label-position="right" label-width="80px" :inline="true" :model="formInline">
+                <el-row :gutter = "24">
+                    <el-col :span="6">
+                        <el-form-item label="审批人">
+                            <el-input v-model="formInline.user" placeholder="审批人"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item label="审批人">
+                            <el-input v-model="formInline.user" placeholder="审批人"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item label="活动区域">
+                            <el-select v-model="formInline.region" placeholder="活动区域">
+                                <el-option label="区域一" value="shanghai"></el-option>
+                                <el-option label="区域二" value="beijing"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item>
+                            <el-button type="primary" @click="onSubmit">查询合同</el-button>
+                            <el-button type="primary" @click="open('新建合同',)">新建合同</el-button>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
             </el-form>
         </div>
         <!-- 合同表格 -->
@@ -121,6 +134,7 @@
                     natureIncome: '',
                     dataRecordingTime: '',
                     status: '',
+                    department: '',
                     leader: '',
                     crew: []
                 }
@@ -166,11 +180,17 @@
     padding: 20px;
     box-sizing: border-box;
 }
+.el-form-item{
+    display: flex;
+}
+.el-form-item>>>.el-form-item__content{
+    flex: 1;
+}
 .el-pagination{
     margin: 50px 0;
     text-align: center;
 }
 .el-select,.el-input{
-    width: 202px;
+    width: 100%;
 }
 </style>

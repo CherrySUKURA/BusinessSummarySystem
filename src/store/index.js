@@ -43,9 +43,9 @@ export default new Vuex.Store({
         state.isLogin = true
       }else if( user == null){
         //登出的时候清空sessionStorage里的状态
-        sessionStorage.setItem("userName",null);
-        sessionStorage.setItem("userToken",null);
-        sessionStorage.setItem("userRouter",null)
+        sessionStorage.removeItem("userName");
+        sessionStorage.removeItem("userToken");
+        sessionStorage.removeItem("userRouter")
         state.curentUser = null;
         state.token = null;
         state.dynamicRouter = null;

@@ -11,29 +11,30 @@
             active-text-color="#ffd04b"
             >
             <template v-for="(item,index) in menuchildData">
-            <el-submenu :index="item.path" v-if="item.children" :key="index">
-                <template slot="title">
-                <i class="el-icon-location"></i>
-                <span>{{item.name}}</span>
-                </template>
-                <el-menu-item-group>
-                <template v-for="(childitem,childindex) in item.children">
-                    <el-submenu v-if="childitem.children" :index="childitem.path"  :key="childindex">
-                        <template slot="title">
-                            <span style="padding:20px">{{childitem.name}}</span>
+                <el-submenu :index="item.path" v-if="item.children != 'false'" :key="index">
+                    <template slot="title">
+                        <i :class="item.icon"></i>
+                        <span>{{item.name}}</span>
+                    </template>
+                    <el-menu-item-group>
+                        <template v-for="(childitem,childindex) in item.children">
+                            <el-submenu v-if="childitem.children != 'false'" :index="childitem.path"  :key="childindex">
+                                <template slot="title">
+                                    <i class="el-icon-s-marketing"></i>
+                                    <span style="padding:20px">{{childitem.name}}</span>
+                                </template>
+                                <el-menu-item-group>
+                                    <template v-for="(sonitem,sonindex) in childitem.children">
+                                        <el-menu-item :key="sonindex" :index="sonitem.path"><span  style="padding:20px">{{sonitem.name}}</span></el-menu-item>
+                                    </template>
+                                </el-menu-item-group>
+                            </el-submenu>
+                            <el-menu-item  v-else :key="childindex" :index="childitem.path">{{childitem.name}}</el-menu-item>
                         </template>
-                        <el-menu-item-group>
-                            <template v-for="(sonitem,sonindex) in childitem.children">
-                            <el-menu-item :key="sonindex" :index="sonitem.path"><span  style="padding:20px">{{sonitem.name}}</span></el-menu-item>
-                            </template>
-                        </el-menu-item-group>
-                    </el-submenu>
-                    <el-menu-item  v-else :key="childindex" :index="childitem.path">{{childitem.name}}</el-menu-item>
-                </template>
                 </el-menu-item-group>
             </el-submenu>
             <el-menu-item v-else :index="item.path" :key="index">
-                <i class="el-icon-location"></i>
+                <i :class="item.icon"></i>
                 <span>{{item.name}}</span>
             </el-menu-item>
             </template>

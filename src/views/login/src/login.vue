@@ -30,7 +30,7 @@
 </template>
 
 <script>
-// import { aiAddress } from '@/api/login.js'
+import { login } from '@/api/login.js'
 export default {
     name: "login",
     props: {
@@ -52,7 +52,6 @@ export default {
                 username: "",
                 password: ""
             },
-            token: "2222",
             options: {//加载配置
                 target: "body",
                 lock: true,
@@ -63,18 +62,28 @@ export default {
             },
             //没过滤的数据类表
             menuData: [
-                {
-                    name: "合同管理",
-                    path: "/contractmanagement",
-                    component: 'pages/contractmanagement',
-                    children: false
-                },
-                {
-                    name: "数据展示",
-                    path: "/datapresentation",
-                    component: 'pages/datapresentation',
-                    children: false
-                },
+                // {
+                //     "name": "合同管理",
+                //     "path": "/contractmanagement",
+                //     "component": 'pages/contractmanagement',
+                //     "icon": 'el-icon-s-platform',
+                //     "children": false
+                // },
+                // {
+                //     "name": "数据展示",
+                //     "path": "",
+                //     "component": '',
+                //     "icon": 'el-icon-s-marketing',
+                //     "children": [
+                //         {
+                //             "name": "数据",
+                //             "path": "/datapresentation",
+                //             "component": 'pages/datapresentation',
+                //             "icon": 'el-icon-s-marketing',
+                //             "children": false
+                //         }
+                //     ]
+                // },
             ],
             //过滤后的数据列表
             itemList: []
@@ -104,11 +113,21 @@ export default {
             return true
         },
         loginHttpRequest(loadingInstance){//登录请求
-            sessionStorage.setItem("userName",this.form.username)
-            sessionStorage.setItem("userToken",this.token)
-            sessionStorage.setItem('userRouter',JSON.stringify(this.menuData))
-            this.$router.push('/')
-            loadingInstance.close()
+            login(this.form).then( res => {
+                if(res.code == 200){
+                    if(res.data.checkOut){
+                        this.menuData = res.data.roleRoute.route
+                        sessionStorage.setItem("userName",this.form.username)
+                        sessionStorage.setItem('userRouter',JSON.stringify(this.menuData))
+                        this.$router.push('/')
+                        loadingInstance.close()
+                        
+                    }else{
+                        this.$message.error(res.msg)
+                        loadingInstance.close()
+                    }
+                }
+            })
         },
         Loading(){//登录加载
             let loadingInstance = this.$loading(this.options)
