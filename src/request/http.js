@@ -5,17 +5,19 @@ let store = vue.$store
 
 // 环境的切换
 if (process.env.NODE_ENV == 'development') { 
-    axios.defaults.baseURL = 'http://192.168.1.169:7879/';}
+    axios.defaults.baseURL = 'http://192.168.1.116:7879/';}
 else if (process.env.NODE_ENV == 'debug') { 
-    axios.defaults.baseURL = 'https://www.hotmine.cn/sys/';
+    // axios.defaults.baseURL = 'https://www.hotmine.cn/sys/';
+    axios.defaults.baseURL = 'http://192.168.1.116:7879/';
 } 
 else if (process.env.NODE_ENV == 'production') { 
-    axios.defaults.baseURL = 'https://www.hotmine.cn/sys/';
+    // axios.defaults.baseURL = 'https://www.hotmine.cn/sys/';
+    axios.defaults.baseURL = 'http://192.168.1.116:7879/';
 }
 //请求时效
-axios.defaults.timeout = 10000;
+axios.defaults.timeout = 1000000;
 //公共请求头
-axios.defaults.headers.post['Content-Type'] = 'application/json;charset=utf-8';
+axios.defaults.headers.post['Content-Type'] = 'application/json';
 //请求前拦截器
 axios.interceptors.request.use(
     config => {
@@ -25,12 +27,11 @@ axios.interceptors.request.use(
         }else{
             //如果不是登录接口，判断是否有token如果有就在请求头中加入token，如果没有就跳转到登录页面重新请求
             if(sessionStorage.getItem('userToken')){
-                config.headers.Authorization = sessionStorage.getItem('userToken')
-            }else{
-                vue.$router.push('/login')
+                config.headers.authorization = sessionStorage.getItem('userToken')
+                config.headers.uuid = sessionStorage.getItem('userUid')
             }
+            return config
         }
-        return config
     },
     error => {
         return Promise.reject(error);
@@ -44,6 +45,9 @@ axios.interceptors.response.use(
             if(response.config.url.split('/').pop() === 'userLogin'){
                 if(response.headers.authorization){
                     sessionStorage.setItem("userToken",response.headers.authorization)
+                }
+                if(response.headers.uuid){
+                    sessionStorage.setItem("userUid",response.headers.uuid)
                 }
             }
             return Promise.resolve(response)
@@ -59,6 +63,7 @@ axios.interceptors.response.use(
                 store.commit('delete_tabs_all')
                 store.dispatch('setUser')
                 vue.$router.push('/login')
+                break
             }
         }
         return Promise.reject(error.response)
