@@ -1,6 +1,6 @@
 <template>
     <div class="addpopup">
-        <el-dialog :title="delogTitle" :visible.sync="dialogVisible" width="56%" :before-close="handleClose">
+        <el-dialog :title="delogTitle" :visible.sync="dialogVisible" width="56%">
             <el-form :model="data" ref="formName" :rules="rules" label-position="right" label-width="110px" :inline="true">
                 <el-row :gutter="10">
                     <el-col :span="8">
@@ -84,6 +84,10 @@
                 <!-- 组员 -->
             </el-form>
             <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="audit('formName')">审 核</el-button>
+                <el-button type="primary" @click="repulse('formName')">打 回</el-button>
+                <el-button type="danger" @click="cancellation('formName')">作 废</el-button>
+                <el-button type="primary" @click="end('formName')">提交结束合同审核</el-button>
                 <el-button type="primary" @click="submitForm('formName',0)">提 交</el-button>
                 <el-button type="primary" @click="submitForm('formName',1)">提交并审核</el-button>
                 <el-button @click="cancel('formName')">取 消</el-button>
@@ -259,18 +263,14 @@ export default {
             }
             projectTeam({})
         },
-        //关闭回调
-        close(name){
+        //弹出框取消回调
+        close(name) {
             this.dialogVisible = false;
             this.$refs[name].resetFields();
         },
-        //弹出框取消回调
-        handleClose(done) {
-            this.$confirm('确认关闭？')
-            .then( () => {
-                done();
-            })
-            .catch( () => {});
+        //审核
+        audit(name){
+            this.close(name)
         },
         //提交表单
         submitForm(name,value){

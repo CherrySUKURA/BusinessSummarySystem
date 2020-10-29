@@ -5,14 +5,14 @@ let store = vue.$store
 
 // 环境的切换
 if (process.env.NODE_ENV == 'development') { 
-    axios.defaults.baseURL = 'http://192.168.1.116:7879/';}
+    axios.defaults.baseURL = 'http://192.168.1.118:7879/';}
 else if (process.env.NODE_ENV == 'debug') { 
     // axios.defaults.baseURL = 'https://www.hotmine.cn/sys/';
-    axios.defaults.baseURL = 'http://192.168.1.116:7879/';
+    axios.defaults.baseURL = 'http://192.168.1.118:7879/';
 } 
 else if (process.env.NODE_ENV == 'production') { 
     // axios.defaults.baseURL = 'https://www.hotmine.cn/sys/';
-    axios.defaults.baseURL = 'http://192.168.1.116:7879/';
+    axios.defaults.baseURL = 'http://192.168.1.118:7879/';
 }
 //请求时效
 axios.defaults.timeout = 1000000;

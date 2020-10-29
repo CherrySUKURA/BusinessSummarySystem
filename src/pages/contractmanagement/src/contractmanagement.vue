@@ -2,29 +2,42 @@
     <div class="contractmanagement">
         <!-- 表单查询 -->
         <div class="seachBtn">
-            <el-form label-position="right" label-width="80px" :inline="true" :model="formInline">
+            <el-form label-position="right" label-width="100px" :inline="true" :model="tableDataParam">
                 <el-row :gutter = "24">
                     <el-col :span="6">
-                        <el-form-item label="审批人">
-                            <el-input v-model="formInline.user" placeholder="审批人"></el-input>
+                        <el-form-item label="合同编号">
+                            <el-input v-model="tableDataParam.contractCustomNumber" placeholder="合同编号"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="6">
-                        <el-form-item label="审批人">
-                            <el-input v-model="formInline.user" placeholder="审批人"></el-input>
+                        <el-form-item label="合同名称">
+                            <el-input v-model="tableDataParam.contractName" placeholder="合同名称"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="6">
-                        <el-form-item label="活动区域">
-                            <el-select v-model="formInline.region" placeholder="活动区域">
-                                <el-option label="区域一" value="shanghai"></el-option>
-                                <el-option label="区域二" value="beijing"></el-option>
+                        <el-form-item label="合同生成时间">
+                            <el-date-picker v-model="tableDataParam.createTime" type="date" value-format="timestamp" placeholder="合同生成时间"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item label="审核状态">
+                            <el-select v-model="tableDataParam.checkStatus" placeholder="审核状态">
+                                <el-option v-for="(item,index) in audit" :key="index" :label="item.checkDesc" :value="item.checkStatus"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="6">
+                        <el-form-item label="合同状态">
+                            <el-select v-model="tableDataParam.contractStatus" placeholder="合同状态">
+                                <el-option v-for="(item,index) in contract" :key="index" :label="item.contractStatusDesc" :value="item.contractStatus"></el-option>
                             </el-select>
                         </el-form-item>
                     </el-col>
                     <el-col :span="6">
                         <el-form-item>
-                            <el-button type="primary" @click="onSubmit">查询合同</el-button>
+                            <el-button type="primary" @click="onSubmit()">查询合同</el-button>
                             <el-button type="primary" @click="open('新建合同',)">新建合同</el-button>
                         </el-form-item>
                     </el-col>
@@ -40,21 +53,21 @@
                 </el-table-column>
                 <el-table-column prop="customerName" :show-overflow-tooltip="true" label="客户名称" min-width="100" align="center">
                 </el-table-column>
-                <el-table-column prop="contractBelongNo" :show-overflow-tooltip="true" label="合同归属" min-width="100" align="center">
+                <el-table-column prop="projectTeamName" :show-overflow-tooltip="true" label="合同归属" min-width="100" align="center">
                 </el-table-column>
-                <el-table-column prop="entryTime" :show-overflow-tooltip="true" label="入账时间" min-width="120" align="center">
+                <el-table-column prop="entryTime" :show-overflow-tooltip="true" label="入账时间" :formatter="getTimeStr" min-width="120" align="center">
                 </el-table-column>
                 <el-table-column prop="estimatedContractAmount" :show-overflow-tooltip="true" label="收入总金额(元)" min-width="100" align="center">
                 </el-table-column>
                 <el-table-column prop="outsourcingCostEstimation" :show-overflow-tooltip="true" label="第三方费用" min-width="100" align="center">
                 </el-table-column>
-                <el-table-column prop="incomeSourceId" :show-overflow-tooltip="true" label="收入性质" min-width="100" align="center">
+                <el-table-column prop="incomeSourceDesc" :show-overflow-tooltip="true" label="收入性质" min-width="100" align="center">
                 </el-table-column>
-                <el-table-column prop="createTime" label="合同生成时间" width="140" align="center">
+                <el-table-column prop="createTime" label="合同生成时间" :formatter="getTimeStr" width="140" align="center">
                 </el-table-column>
-                <el-table-column prop="checkStatus" :show-overflow-tooltip="true" label="状态" min-width="100" align="center">
+                <el-table-column prop="contractStatusDesc" :show-overflow-tooltip="true" label="状态" min-width="100" align="center">
                     <template slot-scope="scope">
-                        <el-tag :type="scope.row.status === '已完结' ? 'primary' : 'success'" disable-transitions>{{scope.row.status}}</el-tag>
+                        <el-tag :type="scope.row.contractStatusDesc === '已完结' ? 'primary' : 'success'" disable-transitions>{{scope.row.contractStatusDesc}}</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column fixed="right" label="操作" width="260" align="center">
@@ -77,23 +90,28 @@
 
 <script>
     import addPopup from '@/components/addpopup';
-    import { queryContract } from '@/api/index.js'
+    import { queryContract,deleteContract,getCheckInfo,getContractStatusInfo } from '@/api/index.js'
     export default {
         name: 'contractmanagement',
         components: {
             addPopup
         },
         created(){
-            this.RequestHttpTableData()
+            this.RequestHttpauditStatus();
+            this.RequestHttpContractStatus();
+            this.RequestHttpTableData();
         },
         data() {
             return {
-                formInline: {  //双向绑定表单
-                    user: '',
-                    region: ''
-                },
+                audit: [],
+                contract: [],
                 dialogVisible: false, //是否打开弹出层
                 tableDataParam: {
+                    contractCustomNumber: '',
+                    contractName: '',
+                    checkStatus:'',
+                    contractStatus:'',
+                    createTime:'',
                     pageNo: 1,//默认第一页,
                     pageSize: 15
                 },
@@ -102,19 +120,36 @@
             }
         },
         methods: {
+            RequestHttpauditStatus(){
+                getCheckInfo({}).then( res => {
+                    this.audit = res.data
+                })
+            },
+            RequestHttpContractStatus() {
+                getContractStatusInfo({}).then( res => {
+                    this.contract = res.data
+                })
+            },
             RequestHttpTableData() {
                 queryContract(this.tableDataParam).then( res => {
                     this.tableData = res.data
                     this.total = res.data_total
                 })
             },
+            getTimeStr(row,colum,cellValue){
+                let now = new Date(cellValue),
+                y = now.getFullYear(),
+                m = ("0" + (now.getMonth() + 1)).slice(-2),
+                d = ("0" + now.getDate()).slice(-2);
+                return y + "-" + m + "-" + d + " " ;
+            },
             //打开弹出框
             open(title,rowData = null){
-                    this.$refs.popup.open(title,rowData)
+                this.$refs.popup.open(title,rowData)
             },
             //查询按钮回调
             onSubmit() {
-                console.log('submit!');
+                this.RequestHttpTableData()
             },
             //查看按钮回调
             // seeClick(title,rowData){
@@ -126,7 +161,26 @@
             // },
             //删除按钮回调
             delClick(rowData){
-                console.log(rowData)
+                this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    deleteContract({contractCustomNumber: rowData.contractCustomNumber}).then( () => {
+                        this.RequestHttpTableData()
+                    }).then( () => {
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                    })
+                }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });          
+            });
+                
             },
             //选择每页多少条回调
             handleSizeChange(val) {

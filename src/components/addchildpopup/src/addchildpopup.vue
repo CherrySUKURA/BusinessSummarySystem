@@ -1,6 +1,6 @@
 <template>
     <div class="addchildpopup">
-        <el-dialog title="子合同信息" append-to-body :visible.sync="vis" width="45%" :before-close="close">
+        <el-dialog title="子合同信息" append-to-body :visible.sync="vis" width="45%">
             <el-form :model="fromdata" ref="addchildpopup" :rules="rules" :inline="true" label-width="110px">
                 <el-row :gutter="10">
                     <el-col :span="8">
@@ -12,7 +12,7 @@
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="部门金额" prop="money">
-                            <el-input v-model="fromdata.money" oninput="value=value.replace(/[^0-9.]/g,'')"  @change="RequestamountAllocation(list.clientType,fromdata.money)"></el-input>
+                            <el-input  :disabled="disabled" v-model="fromdata.money" oninput="value=value.replace(/[^0-9.]/g,'')"  @change="RequestamountAllocation(list.clientType,fromdata.money)"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -35,21 +35,21 @@
                 </el-row>
             </el-form>
             <div class="btn">
-                <el-button @click="addItme()">添加</el-button>
-                <el-button @click="removeItem(checkSelect)">删除</el-button>
+                <el-button :disabled="disabled" @click="addItme()">添加</el-button>
+                <el-button :disabled="disabled" @click="removeItem(checkSelect)">删除</el-button>
             </div>
             <el-table :data="fromdata.child" style="width: 100%" @selection-change = 'check'>
                 <el-table-column type="selection" width="60"></el-table-column>
                 <el-table-column prop="staffCode" align="center" label="姓名" width="180">
                     <template slot-scope="scope">
-                        <el-select v-model="scope.row.staffCode">
+                        <el-select  :disabled="disabled" v-model="scope.row.staffCode">
                             <el-option v-for="(item,index) in team" :key="index" :label="item.staffName" :value="item.staffCode"></el-option>
                         </el-select>
                     </template>
                 </el-table-column>
                 <el-table-column prop="id"  align="center"  label="分工" width="180">
                     <template slot-scope="scope">
-                        <el-select v-model="scope.row.id" @change="Requestintoinfo(scope.row.id,fromdata.proportion,fromdata.money,scope.$index)">
+                        <el-select :disabled="disabled" v-model="scope.row.id" @change="Requestintoinfo(scope.row.id,fromdata.proportion,fromdata.money,scope.$index)">
                             <el-option v-for="(item,index) in divisionList" :key="index" :label="item.typeDesc + '(' + renderContent(item.proportion) + ')'" :value="item.id"></el-option>
                         </el-select>
                     </template>
@@ -57,7 +57,7 @@
                 <el-table-column prop="selfProportion"  align="center" width="180" label="分成"></el-table-column>
                 <el-table-column prop="leader"  align="center"  label="身份" width="180">
                     <template slot-scope="scope">
-                        <el-select v-model="scope.row.leader">
+                        <el-select :disabled="disabled" v-model="scope.row.leader">
                             <el-option label="组长" :value="0"></el-option>
                             <el-option label="组员" :value="1"></el-option>
                         </el-select>
@@ -80,6 +80,7 @@ export default {
         return {
             listNew:[],//所有部门信息
             vis: false,//当前弹出框是否打开
+            disabled: false,
             department: [],//部门名称列表
             team:[],//成员信息列表
             divisionList: [],//分工列表
@@ -147,6 +148,7 @@ export default {
             if(name == null){
                 this.selectDepartment()
             }
+            this.tableDataFor()
             teamInfo( {num:id} ).then( res => {
                 this.team = res.data
             })
@@ -233,7 +235,6 @@ export default {
                 leader: '',
             })
             this.RequestTeamList(this.fromdata.id,'add')
-            this.tableDataFor()
         },
         //删除成员信息方法
         removeItem(e){
@@ -258,11 +259,18 @@ export default {
                     pmStandard: 0,
                     child:[]       
                 }
+                this.listNew = this.list.listNew
             }else{
+                if(title == '查看合同'){
+                    this.disabled = true
+                }else{
+                    this.disabled = false
+                }
                 let res = await this.requestqueryChildContract(list.contractCustomNumber)
                 this.listNew = res.data
+
             }
-            this.tableDataFor()
+            this.RequestTeamList(this.fromdata.id)
             this.RequestamountAllocation(this.list.clientType,this.fromdata.money)
             this.vis = true
         },
@@ -292,13 +300,9 @@ export default {
         },
         //关闭当前弹出框方法
         close(name) {
-            this.$confirm('确认关闭？')
-            .then( () => {
-                this.vis = false
-                this.$refs[name].resetFields()
-                this.empty()
-            })
-            .catch( () => {});
+            this.vis = false
+            this.$refs[name].resetFields()
+            this.empty()
         },
     }
 }
