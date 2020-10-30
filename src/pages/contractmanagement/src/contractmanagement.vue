@@ -38,6 +38,7 @@
                     <el-col :span="6">
                         <el-form-item>
                             <el-button type="primary" @click="onSubmit()">查询合同</el-button>
+                            <el-button type="primary" @click="reset()">重置查询</el-button>
                             <el-button type="primary" @click="open('新建合同',)">新建合同</el-button>
                         </el-form-item>
                     </el-col>
@@ -149,6 +150,18 @@
             },
             //查询按钮回调
             onSubmit() {
+                this.RequestHttpTableData()
+            },
+            reset(){
+                this.tableDataParam = {
+                    contractCustomNumber: '',
+                    contractName: '',
+                    checkStatus:'',
+                    contractStatus:'',
+                    createTime:'',
+                    pageNo: 1,//默认第一页,
+                    pageSize: 15
+                }
                 this.RequestHttpTableData()
             },
             //查看按钮回调

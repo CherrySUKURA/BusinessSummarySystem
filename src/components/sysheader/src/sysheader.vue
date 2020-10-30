@@ -8,7 +8,7 @@
         <li>
             <el-dropdown>
                 <p class="user_name">
-                    开发人员<i class="el-icon-arrow-down el-icon--right"></i>
+                    {{$store.state.currentUser}}<i class="el-icon-arrow-down el-icon--right"></i>
                 </p>
                 <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item @click.native="personalData" icon="el-icon-circle-plus">个人资料</el-dropdown-item>

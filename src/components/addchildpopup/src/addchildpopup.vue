@@ -38,7 +38,7 @@
                 <el-button :disabled="disabled" @click="addItme()">添加</el-button>
                 <el-button :disabled="disabled" @click="removeItem(checkSelect)">删除</el-button>
             </div>
-            <el-table :data="fromdata.child" style="width: 100%" @selection-change = 'check'>
+            <el-table :data="fromdata.child" style="width: 100%;max-height: 400px" @selection-change = 'check'>
                 <el-table-column type="selection" width="60"></el-table-column>
                 <el-table-column prop="staffCode" align="center" label="姓名" width="180">
                     <template slot-scope="scope">
@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { projectTeam,teamInfo,getAllBusinessType,moneyProportion,selfMoney,queryChildContract } from '@/api/index.js'
+import { projectTeam,teamInfo,getAllBusinessType,moneyProportion,selfMoney } from '@/api/index.js'
 export default {
     name: 'addchildpopup',
     data(){
@@ -128,9 +128,11 @@ export default {
     methods: {
         //循环增加index，保证添加的信息在当前选择的信息上
         tableDataFor(){
-            this.fromdata.child.forEach( (item,index) => {
-                item.index = index
-            })
+            if(this.fromdata.child != null){
+                this.fromdata.child.forEach( (item,index) => {
+                    item.index = index
+                })
+            }
         },
         //进入后获取信息
         RequestHttp(){
@@ -163,7 +165,7 @@ export default {
         },
         //如果分工改变获得个人分成信息
         Requestintoinfo(id,proportion,money,index){
-            if(money == "0" && money == ""){
+            if(String(money) == ""){
                 this.$message('请先填写部门金额')
                 this.fromdata.child[index].id = ''
                 return false
@@ -177,10 +179,6 @@ export default {
             ).then( res => {
                 this.fromdata.child[index].selfProportion = res.data.selfProportion
             })
-        },
-        //获取已保存的部门信息（只会在编辑与查看界面执行）
-        requestqueryChildContract(contractCustomNumber){
-            return queryChildContract({contractCustomNumber:contractCustomNumber})
         },
         //清空函数
         empty(){
@@ -247,28 +245,14 @@ export default {
             })
         },
         //打开当前弹出框方法（父级页面调用）
-        async open(list,title){
+        open(list,title){
             this.RequestHttp();
             this.list = JSON.parse(JSON.stringify(list))
-            if(title == '新建合同'){
-                this.fromdata = {
-                    id: 1,
-                    money: "0",
-                    proportion: 0,
-                    businessStandard: 0,
-                    pmStandard: 0,
-                    child:[]       
-                }
-                this.listNew = this.list.listNew
+            this.listNew = this.list.listNew
+            if(title == '查看合同'){
+                this.disabled = true
             }else{
-                if(title == '查看合同'){
-                    this.disabled = true
-                }else{
-                    this.disabled = false
-                }
-                let res = await this.requestqueryChildContract(list.contractCustomNumber)
-                this.listNew = res.data
-
+                this.disabled = false
             }
             this.RequestTeamList(this.fromdata.id)
             this.RequestamountAllocation(this.list.clientType,this.fromdata.money)

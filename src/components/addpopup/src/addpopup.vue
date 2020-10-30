@@ -1,6 +1,6 @@
 <template>
     <div class="addpopup">
-        <el-dialog :title="delogTitle" :visible.sync="dialogVisible" width="56%">
+        <el-dialog :close-on-click-modal="false" :title="delogTitle" :visible.sync="dialogVisible" width="56%">
             <el-form :model="data" ref="formName" :rules="rules" label-position="right" label-width="110px" :inline="true">
                 <el-row :gutter="10">
                     <el-col :span="8">
@@ -77,15 +77,20 @@
                 <el-row :gutter="10">
                     <el-col :span="8">
                         <el-form-item label="子合同管理">
-                              <el-button :disabled="false" type="info" @click="dialogChildVisible('formName',data,delogTitle)">管理</el-button>
+                              <el-button :disabled="false" type="info" @click="dialogChildVisible('formName',delogTitle)">管 理</el-button>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="审核信息">
+                              <el-button :disabled="false" type="info" @click="dialogReview(data.contractCustomNumber)">审核信息</el-button>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <!-- 组员 -->
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="audit('formName')">审 核</el-button>
-                <el-button type="primary" @click="repulse('formName')">打 回</el-button>
+                <el-button type="primary" @click="audit(3)">审 核</el-button>
+                <el-button type="primary" @click="audit(2)">打 回</el-button>
                 <el-button type="danger" @click="cancellation('formName')">作 废</el-button>
                 <el-button type="primary" @click="end('formName')">提交结束合同审核</el-button>
                 <el-button type="primary" @click="submitForm('formName',0)">提 交</el-button>
@@ -93,24 +98,38 @@
                 <el-button @click="cancel('formName')">取 消</el-button>
             </span>
             <add-child-popup ref="childpopup" @byValue="byValue"></add-child-popup>
+            <review-popup ref="reviewpopup"></review-popup>
+            <el-dialog  append-to-body :close-on-click-modal="false" title="请输入审核信息" :visible.sync="reviewvisible" width="20%">
+                <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="请输入审核信息" v-model="checkDesc">
+                </el-input>
+                <span slot="footer" class="dialog-footer">
+                    <el-button type="primary" @click="review()">确 定</el-button>
+                    <el-button type="primary" @click="none()">取 消</el-button>
+                </span>
+            </el-dialog>
         </el-dialog>
     </div>
 </template>
 <script>
 import addChildPopup from '@/components/addchildpopup'
-import { getContractNo,getCompany,projectTeam,income_source,addContract } from '@/api/index.js';
+import reviewPopup from '@/components/reviewpopup'
+import { getContractNo,getCompany,projectTeam,income_source,addContract,checkContract,queryChildContract } from '@/api/index.js';
 export default {
     name: 'addpopup',
     components: {
-        addChildPopup
+        addChildPopup,
+        reviewPopup
     },
     data(){
         return {
             username: "admin",
             from: "shanghai",
             dialogVisible: false,
+            reviewvisible: false,
+            checkDesc: '',
             dis: false,
             delogTitle: "",
+            status: null,
             data: {},
             fatherData: {},
             contract_belong: [],
@@ -205,11 +224,19 @@ export default {
                 callback()
             }
         },
+        async childContract(data){
+            let res = await this.requestqueryChildContract(data.contractCustomNumber)
+            this.data.listNew = res.data
+        },
         RequestContraNo(value){
             return getContractNo({contractCustomNumber: value});
         },
         RequestCustomerName(value){
             return getCompany({customerName: value});
+        },
+        //获取已保存的部门信息（只会在编辑与查看界面执行）
+        requestqueryChildContract(contractCustomNumber){
+            return queryChildContract({contractCustomNumber:contractCustomNumber})
         },
         RequestHttp(){
             projectTeam({}).then( res => {
@@ -236,6 +263,7 @@ export default {
             if(data != null){
                 this.fatherData = data
                 this.data = JSON.parse(JSON.stringify(data));
+                this.childContract(this.data)
             }else{
                 this.data = {
                     contractCustomNumber: '',
@@ -269,19 +297,47 @@ export default {
             this.$refs[name].resetFields();
         },
         //审核
-        audit(name){
-            this.close(name)
+        audit(value){
+            this.reviewvisible = true
+            this.status = value
+        },
+        review(){
+            checkContract({
+                contractCustomNumber: this.data.contractCustomNumber,
+                checkStatus: this.status,
+                checkDesc: this.checkDesc
+            }).then( (res) => {
+                if(res.data.checkOut){
+                    this.$message({
+                        message: res.msg,
+                        type: 'success'
+                    })
+                    this.reviewvisible = false
+                    this.close('formName')
+                }else{
+                    this.$message.error(res.msg)
+                }
+            })
+        },
+        none(){
+            this.checkDesc = ''
+            this.reviewvisible = false
         },
         //提交表单
         submitForm(name,value){
             this.$refs[name].validate((valid) => {
                 if (valid) {
+                    debugger
                     if(this.data.listNew.length !== 0){
                         this.data.checkStatus = value
-                        addContract(JSON.parse(JSON.stringify(this.data))).then(() => {
-                            this.$message('请求成功')
-                            this.close(name);
-                            this.$parent.RequestHttpTableData()
+                        addContract(JSON.parse(JSON.stringify(this.data))).then((res) => {
+                            if(res.data.checkOut){
+                                this.$message(res.msg)
+                                this.close(name);
+                                this.$parent.RequestHttpTableData()
+                            }else{
+                                this.$message.error(res.msg)
+                            }
                         })
                     }else{
                         this.$message({
@@ -303,16 +359,17 @@ export default {
             this.close(name);
         },
         //打开子弹出框
-        dialogChildVisible(formName,data,title){
-            console.log(title)
+        dialogChildVisible(formName,title){
             this.$refs[formName].validate((valid) => {
                 if (valid) {
-                    this.$refs.childpopup.open(data,title);
+                    this.$refs.childpopup.open(this.data,title);
                 } else {
                     return false;
                 }
             });
-
+        },
+        dialogReview(e){
+            this.$refs.reviewpopup.open(e)
         }
     }
 }
