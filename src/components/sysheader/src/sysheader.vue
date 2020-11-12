@@ -42,6 +42,7 @@ export default {
         changePassword(){
 
         },
+        //注销登录
         logout(){
             this.$store.commit('delete_tabs_all')
             this.$store.dispatch('setUser')

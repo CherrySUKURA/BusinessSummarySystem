@@ -3,40 +3,48 @@
         <el-menu
             :default-active="activeIndex"
             class="el-menu-vertical-demo"
-            @open="handleOpen"
-            @close="handleClose"
             :router="true"
             background-color="#20222A"
             text-color="#fff"
             active-text-color="#ffd04b"
             >
             <template v-for="(item,index) in menuchildData">
-                <el-submenu :index="item.path" v-if="item.children != 'false'" :key="index">
+                <el-submenu :index="item.name" v-if="item.children != 'false'" :key="index">
                     <template slot="title">
                         <i :class="item.icon"></i>
                         <span>{{item.name}}</span>
                     </template>
                     <el-menu-item-group>
                         <template v-for="(childitem,childindex) in item.children">
-                            <el-submenu v-if="childitem.children != 'false'" :index="childitem.path"  :key="childindex">
+                            <el-submenu v-if="childitem.children != 'false'" :index="childitem.name"  :key="childindex">
                                 <template slot="title">
-                                    <i class="el-icon-s-marketing"></i>
+                                    <!-- <i class="el-icon-s-marketing"></i> -->
                                     <span style="padding:20px">{{childitem.name}}</span>
                                 </template>
                                 <el-menu-item-group>
                                     <template v-for="(sonitem,sonindex) in childitem.children">
-                                        <el-menu-item :key="sonindex" :index="sonitem.path"><span  style="padding:20px">{{sonitem.name}}</span></el-menu-item>
+                                        <el-submenu v-if="sonitem.children != 'false'" :index="sonitem.name" :key="sonindex">
+                                            <template slot="title">
+                                                <span style="padding:20px">{{sonitem.name}}</span>
+                                            </template>
+                                            <el-menu-item-group>
+                                                <template v-for="(routerList,routerIndex) in sonitem.children">
+                                                    <el-menu-item :key="routerIndex" :index="sonitem.path"><span  style="padding:20px">{{routerList.name}}</span></el-menu-item>
+                                                </template>
+                                            </el-menu-item-group>
+                                        </el-submenu>
+                                        <el-menu-item v-else :key="sonindex" :index="sonitem.path"><span  style="padding:20px">{{sonitem.name}}</span></el-menu-item>
                                     </template>
                                 </el-menu-item-group>
                             </el-submenu>
                             <el-menu-item  v-else :key="childindex" :index="childitem.path">{{childitem.name}}</el-menu-item>
                         </template>
-                </el-menu-item-group>
-            </el-submenu>
-            <el-menu-item v-else :index="item.path" :key="index">
-                <i :class="item.icon"></i>
-                <span>{{item.name}}</span>
-            </el-menu-item>
+                    </el-menu-item-group>
+                </el-submenu>
+                <el-menu-item v-else :index="item.path" :key="index">
+                    <i :class="item.icon"></i>
+                    <span>{{item.name}}</span>
+                </el-menu-item>
             </template>
         </el-menu>
     </div>
@@ -65,6 +73,7 @@ export default {
         }
     },
     methods: {
+        //监听到路由改变回调
         getPath(to){
            let flag = false;//判断是否页面中已经存在该路由下的tab页
            //options记录当前页面中已经存在的tab页
@@ -81,16 +90,12 @@ export default {
                this.$store.commit('set_active_index',to.path)
            }
         },
-        handleOpen(key, keyPath){
-            console.log(key, keyPath);
-        },
-        handleClose(key, keyPath){
-            console.log(key, keyPath);
-        }
     },
     computed: {
         ...mapState({
+            //tab列表
             openTab: state => state.openTab,
+            //当前tab的索引
             activeIndex: state => state.activeIndex
         })
     }

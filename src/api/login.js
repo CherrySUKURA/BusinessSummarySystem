@@ -1,4 +1,4 @@
-import {get,post} from '@/request/http.js'
+import {post} from '@/request/http.js'
 
-export const aiAddress = p => get('/questionnaire/getTitleInfo',p)
+//登录接口
 export const login = p => post('/contract/login/userLogin',p)

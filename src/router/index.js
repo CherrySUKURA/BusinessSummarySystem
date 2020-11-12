@@ -14,7 +14,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  mode: "history",
+  // mode: "history",
   routes
 })
 //跳转拦截器
@@ -29,6 +29,7 @@ router.beforeEach( (to,from,next) => {
         if(store.state.isLogin === false && to.path !== '/login'){
           store.dispatch("setUser",sessionStorage.getItem('userName'))
           store.dispatch('setToken',sessionStorage.getItem('userToken'))
+          store.dispatch('setUuid',sessionStorage.getItem('userUid'))
           //需同步执行，如果是异步执行的就会发生没有存储完毕就从vuex中拿数据的情况，这样虽然在存储完毕的时候仍然可以拿到数据，但是第一次跳转不会显示页面
           //因为第一次没有注入路由
           store.dispatch('setRouter',JSON.parse(sessionStorage.getItem('userRouter'))).then( () => {
@@ -57,13 +58,26 @@ function filtration (dynamicRouter) {
   for( let item of dynamicRouter){
     if(item.children != 'false'){
       for( let itemchild of item.children){
-        addroute.push(
-          {
-            name: itemchild.name,
-            path: itemchild.path,
-            component: () => import(`@/${itemchild.component}`)
-          }
-        )
+        if( itemchild.children != 'false'){
+            // let a = []
+            for( let itemson of itemchild.children){
+              addroute.push(
+                {
+                  name: itemson.name,
+                  path: itemson.path,
+                  component: () => import(`@/${itemson.component}`)
+                }
+              )
+            }
+        }else{
+          addroute.push(
+            {
+              name: itemchild.name,
+              path: itemchild.path,
+              component: () => import(`@/${itemchild.component}`)
+            }
+          )
+        }
       }
     }else{
       addroute.push(

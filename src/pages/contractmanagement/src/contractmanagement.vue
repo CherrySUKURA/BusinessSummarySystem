@@ -39,7 +39,7 @@
                         <el-form-item>
                             <el-button type="primary" @click="onSubmit()">查询合同</el-button>
                             <el-button type="primary" @click="reset()">重置查询</el-button>
-                            <el-button type="primary" @click="open('新建合同',)">新建合同</el-button>
+                            <el-button type="primary" v-if="checknew" @click="open('新建合同',)">新建合同</el-button>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -71,11 +71,16 @@
                         <el-tag :type="scope.row.contractStatusDesc === '已完结' ? 'primary' : 'success'" disable-transitions>{{scope.row.contractStatusDesc}}</el-tag>
                     </template>
                 </el-table-column>
+                <el-table-column prop="checkInfoDesc" :show-overflow-tooltip="true" label="审核状态" min-width="80" align="center">
+                    <template slot-scope="scope">
+                        <el-tag :type="scope.row.checkInfoDesc === '已审核' ? 'primary' : 'success'" disable-transitions>{{scope.row.checkInfoDesc}}</el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column fixed="right" label="操作" width="260" align="center">
                     <template slot-scope="scope">
                         <el-button type="primary" @click="open('查看合同',scope.row)" size="small">查看</el-button>
-                        <el-button type="warning" @click="open('编辑合同',scope.row)" size="small">编辑</el-button>
-                        <el-button type="danger" @click="delClick(scope.row)" size="small">删除</el-button>
+                        <el-button type="warning" :disabled="checkCompile(scope.row)" @click="open('编辑合同',scope.row)" size="small">编辑</el-button>
+                        <el-button type="danger" :disabled="deleteCompile(scope.row)" @click="delClick(scope.row)" size="small">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -91,7 +96,7 @@
 
 <script>
     import addPopup from '@/components/addpopup';
-    import { queryContract,deleteContract,getCheckInfo,getContractStatusInfo } from '@/api/index.js'
+    import { queryContract,deleteContract,getCheckInfo,getContractStatusInfo } from '@/api/contractmanagement.js'
     export default {
         name: 'contractmanagement',
         components: {
@@ -102,12 +107,52 @@
             this.RequestHttpContractStatus();
             this.RequestHttpTableData();
         },
+        computed:{
+            //编辑按钮在什么时候禁用
+            checkCompile(){
+                return function(row){
+                    if(row.checkStatus == 1){
+                        return true
+                    }
+                    if(this.$store.state.checkButton !== null){
+                        if(row.checkStatus == 3 && row.status == 1 && this.$store.state.checkButton.role !== '000'){
+                            return true
+                        }
+                    }
+                    if(row.status == 2 || row.status == 3 || row.status == 4){
+                        return true
+                    }
+                    return false
+                }
+            },
+            deleteCompile(){
+                return function(row){
+                    if(this.$store.state.checkButton !== null){
+                        if(this.$store.state.checkButton.role !== '000'){
+                            return true
+                        }
+                    }
+                    if(row.status !== 0 && row.status !== 4 ){
+                        return true
+                    }
+                    return false
+                }
+            },
+            checknew(){
+                if(this.$store.state.checkButton !== null){
+                    if(this.$store.state.checkButton.role !== '000' && this.$store.state.checkButton.role !== '001'){
+                        return false
+                    }
+                }
+                return true
+            }
+        },
         data() {
             return {
-                audit: [],
-                contract: [],
+                audit: [],//审核状态列表
+                contract: [],//合同状态列表
                 dialogVisible: false, //是否打开弹出层
-                tableDataParam: {
+                tableDataParam: {//表单绑定数据与获取表格参数信息
                     contractCustomNumber: '',
                     contractName: '',
                     checkStatus:'',
@@ -116,27 +161,31 @@
                     pageNo: 1,//默认第一页,
                     pageSize: 15
                 },
-                total: 0,
+                total: 0,//数据总条数
                 tableData: []   //表格信息
             }
         },
         methods: {
+            //查询审核状态列表
             RequestHttpauditStatus(){
                 getCheckInfo({}).then( res => {
                     this.audit = res.data
                 })
             },
+            //查询合同状态列表
             RequestHttpContractStatus() {
                 getContractStatusInfo({}).then( res => {
                     this.contract = res.data
                 })
             },
+            //查询表格信息与分页
             RequestHttpTableData() {
                 queryContract(this.tableDataParam).then( res => {
                     this.tableData = res.data
                     this.total = res.data_total
                 })
             },
+            //时间戳转换
             getTimeStr(row,colum,cellValue){
                 let now = new Date(cellValue),
                 y = now.getFullYear(),
@@ -152,6 +201,7 @@
             onSubmit() {
                 this.RequestHttpTableData()
             },
+            //清除表单并请求全部合同
             reset(){
                 this.tableDataParam = {
                     contractCustomNumber: '',
@@ -188,11 +238,11 @@
                         });
                     })
                 }).catch(() => {
-                this.$message({
-                    type: 'info',
-                    message: '已取消删除'
-                });          
-            });
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });          
+                });
                 
             },
             //选择每页多少条回调

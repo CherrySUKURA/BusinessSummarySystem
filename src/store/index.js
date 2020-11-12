@@ -6,11 +6,13 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     openTab:[],//所有打开的路由
-    activeIndex:'/contractmanagement',
-    dynamicRouter: null,
-    currentUser:null,
-    isLogin:false,
-    token: null
+    activeIndex:'/contractmanagement',//当前所显示的tab索引
+    dynamicRouter: null,//路由列表
+    currentUser:null,//用户名
+    isLogin:false,//是否为登录状态
+    token: null,//token
+    uuid: null,//用户唯一标识
+    checkButton: null//是否是管理员
   },
   mutations: {
     //添加tabs
@@ -37,7 +39,7 @@ export default new Vuex.Store({
       this.state.activeIndex = index;
     },
     //用户信息：登录状态和用户名
-    userStatus (state,user){
+    userStatus (state,user = null){
       if(user){
         state.currentUser = user
         state.isLogin = true
@@ -45,11 +47,12 @@ export default new Vuex.Store({
         //登出的时候清空sessionStorage里的状态
         sessionStorage.removeItem("userName");
         sessionStorage.removeItem("userToken");
-        sessionStorage.removeItem("userRouter")
+        sessionStorage.removeItem("userRouter");
         state.curentUser = null;
         state.token = null;
         state.dynamicRouter = null;
         state.isLogin = false;
+        state.checkButton = null
       }
     },
     //token
@@ -59,19 +62,37 @@ export default new Vuex.Store({
     //路由列表
     routerList (state,list){
       state.dynamicRouter = list
+    },
+    //用户唯一标识
+    uuidStatus (state,uuid){
+      state.uuid = uuid
+    },
+    //管理员标识
+    userCheckButton (state,button){
+      state.checkButton = button
     }
   },
   actions: {
+    //设置用户
     setUser( {commit},user){
       commit("userStatus",user)
     },
+    //设置token
     setToken( {commit},token){
       commit('tokenStatus',token)
     },
+    //设置路由
     setRouter( {commit},list){
       commit('routerList',list)
     },
-
+    //设置用户唯一标识
+    setUuid( {commit},uuid){
+      commit('uuidStatus',uuid)
+    },
+    //设置是否为管理员
+    setCheckButton( {commit},button){
+      commit('userCheckButton',button)
+    }
   },
   modules: {
   }

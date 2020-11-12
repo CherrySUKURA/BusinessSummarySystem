@@ -26,6 +26,7 @@
 import navigartionBar from '@/components/navigationbar';
 import crumbs from '@/components/crumbs';
 import sysHeader from '@/components/sysheader';
+import { getCheckButton } from '@/api/index.js'
 export default {
   name: 'index',
   components: {
@@ -37,19 +38,23 @@ export default {
 
   },
   created(){
-    
-  },
-  beforeMount(){
+    this.RequestCheckButton()
     this.refreshPage() 
     this.menuData = this.$store.state.dynamicRouter
   },
   data(){
     return {
-      imgSrc: require("assets/admin.png"),
-      menuData: []
+      imgSrc: require("assets/admin.png"),//用户头像
+      menuData: []//侧边栏数据树
     }
   },
   methods: {
+    //获取是否为管理员
+    RequestCheckButton(){
+      getCheckButton({}).then( res => {
+        this.$store.dispatch('setCheckButton',res.data)
+      })
+    },
     //进入页面时进行tab赋值
     refreshPage(){
       this.$store.commit('delete_tabs_all')

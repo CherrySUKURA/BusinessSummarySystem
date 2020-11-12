@@ -89,21 +89,23 @@
                 <!-- 组员 -->
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="audit(3)">审 核</el-button>
-                <el-button type="primary" @click="audit(2)">打 回</el-button>
-                <el-button type="danger" @click="cancellation('formName')">作 废</el-button>
-                <el-button type="primary" @click="end('formName')">提交结束合同审核</el-button>
-                <el-button type="primary" @click="submitForm('formName',0)">提 交</el-button>
-                <el-button type="primary" @click="submitForm('formName',1)">提交并审核</el-button>
-                <el-button @click="cancel('formName')">取 消</el-button>
+                <el-button type="primary" v-if="checkaudit" @click="audit('audit',3)">审 核</el-button>
+                <el-button type="primary" v-if="checkaudit"  @click="audit('audit',2)">打 回</el-button>
+                <el-button type="danger" v-if="checkStop" @click="audit('contractStatus',3)">暂 停</el-button>
+                <el-button type="danger" v-if="checkStart" @click="audit('contractStatus',5)">启 动</el-button>
+                <el-button type="danger" v-if="checkStop" @click="audit('contractStatus',4)">作 废</el-button>
+                <el-button type="primary" v-if="checkStop" @click="audit('contractStatus',2)">结 束</el-button>
+                <el-button type="primary" v-if="checkSubmit" @click="submitForm('formName',0)">提 交</el-button>
+                <el-button type="primary" v-if="checkSubmit" @click="submitForm('formName',1)">提交并审核</el-button>
+                <el-button @click="close()">取 消</el-button>
             </span>
             <add-child-popup ref="childpopup" @byValue="byValue"></add-child-popup>
             <review-popup ref="reviewpopup"></review-popup>
-            <el-dialog  append-to-body :close-on-click-modal="false" title="请输入审核信息" :visible.sync="reviewvisible" width="20%">
-                <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="请输入审核信息" v-model="checkDesc">
+            <el-dialog  append-to-body :close-on-click-modal="false" title="请输入信息" :visible.sync="reviewvisible" width="20%">
+                <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="请输入信息" v-model="checkDesc">
                 </el-input>
                 <span slot="footer" class="dialog-footer">
-                    <el-button type="primary" @click="review()">确 定</el-button>
+                    <el-button type="primary" @click="review(name)">确 定</el-button>
                     <el-button type="primary" @click="none()">取 消</el-button>
                 </span>
             </el-dialog>
@@ -113,28 +115,59 @@
 <script>
 import addChildPopup from '@/components/addchildpopup'
 import reviewPopup from '@/components/reviewpopup'
-import { getContractNo,getCompany,projectTeam,income_source,addContract,checkContract,queryChildContract } from '@/api/index.js';
+import { getContractNo,getCompany,projectTeam,income_source,addContract,checkContract,queryChildContract,updateContractStatus } from '@/api/contractmanagement.js';
 export default {
     name: 'addpopup',
     components: {
         addChildPopup,
         reviewPopup
     },
+    computed: {
+        //暂停作废结束按钮是否显示
+        checkStop(){
+            if(this.data.status == 1 && this.data.checkStatus !== 1){
+                return true
+            }
+            return false
+
+        },
+        //启动按钮是否显示
+        checkStart(){
+            if(this.data.status == 3 && this.data.checkStatus !== 1){
+                return true
+            }
+            return false
+        },
+        //提交按钮是否显示
+        checkSubmit(){
+            if(this.delogTitle == '查看合同'){
+                return false
+            }
+            return true
+        },
+        checkaudit(){
+            if(this.$store.state.checkButton != null){
+                if(this.$store.state.checkButton.role == '000' && this.data.checkStatus == 1){
+                    return true
+                }
+            }
+            return false
+        }
+    },
     data(){
         return {
-            username: "admin",
-            from: "shanghai",
-            dialogVisible: false,
-            reviewvisible: false,
-            checkDesc: '',
-            dis: false,
-            delogTitle: "",
-            status: null,
-            data: {},
-            fatherData: {},
-            contract_belong: [],
-            income_source_group: [],
-            rules: {
+            name: '',//方法索引，判断当前点击的按钮是哪一个
+            dialogVisible: false,//当亲弹出框是否打开
+            reviewvisible: false,//提交或审核输入信息弹出框是否打开
+            checkDesc: '',//提交或审核输入的信息
+            dis: false,//当前表单是否禁止使用
+            delogTitle: "",//弹出框标题
+            status: null,//方法索引，判断当前提交方法所属
+            data: {},//表单数据
+            fatherData: {},//父组件传值数据
+            contract_belong: [],//合同归属选项列表
+            income_source_group: [],//输入性质选项列表
+            rules: {//验证规则
                 contractCustomNumber: [
                     { required: true,validator: this.contracNoRuler,trigger: 'blur' },
                 ],
@@ -207,6 +240,7 @@ export default {
             }
             
         },
+        //表单自定义验证
         async customerNameRuler(rule,value,callback){
             if(this.delogTitle == '新建合同'){
                 if(value == ""){
@@ -224,20 +258,24 @@ export default {
                 callback()
             }
         },
+        //获取子合同数据
         async childContract(data){
-            let res = await this.requestqueryChildContract(data.contractCustomNumber)
+            let res = await this.RequestqueryChildContract(data.contractCustomNumber)
             this.data.listNew = res.data
         },
+        //获取合同编号是否重复
         RequestContraNo(value){
             return getContractNo({contractCustomNumber: value});
         },
+        //根据客户名称判断当前客户是新老客户
         RequestCustomerName(value){
             return getCompany({customerName: value});
         },
         //获取已保存的部门信息（只会在编辑与查看界面执行）
-        requestqueryChildContract(contractCustomNumber){
+        RequestqueryChildContract(contractCustomNumber){
             return queryChildContract({contractCustomNumber:contractCustomNumber})
         },
+        //当前弹出框打开时获取的数据
         RequestHttp(){
             projectTeam({}).then( res => {
                 this.contract_belong = res.data;
@@ -246,6 +284,7 @@ export default {
                 this.income_source_group = res.data;
             })
         },
+        //监听子组件自定义事件后执行并获取参数
         byValue(e){
             this.data.listNew = e;
             if(this.data.listNew.length !== 0){
@@ -292,33 +331,51 @@ export default {
             projectTeam({})
         },
         //弹出框取消回调
-        close(name) {
+        close() {
             this.dialogVisible = false;
-            this.$refs[name].resetFields();
         },
-        //审核
-        audit(value){
+        //审核,打回，暂停，启动，作废，结束完成
+        audit(name,value){
             this.reviewvisible = true
             this.status = value
+            this.name = name
         },
-        review(){
-            checkContract({
-                contractCustomNumber: this.data.contractCustomNumber,
-                checkStatus: this.status,
-                checkDesc: this.checkDesc
-            }).then( (res) => {
-                if(res.data.checkOut){
-                    this.$message({
-                        message: res.msg,
-                        type: 'success'
-                    })
-                    this.reviewvisible = false
-                    this.close('formName')
-                }else{
-                    this.$message.error(res.msg)
-                }
-            })
+        //填写审核信息弹出框确定回调
+        review(name){
+            if(name == 'audit'){
+                checkContract({
+                    contractCustomNumber: this.data.contractCustomNumber,
+                    checkStatus: this.status,
+                    checkDesc: this.checkDesc
+                }).then( (res) => {
+                    this.callback(res)
+                })
+            }
+            if(name == 'contractStatus'){
+                updateContractStatus({
+                    contractCustomNumber: this.data.contractCustomNumber,
+                    status: this.status,
+                    statusDesc: this.checkDesc
+                }).then( (res) => {
+                    this.callback(res)
+                })
+            }
         },
+        //填写审核信息确定回调方法的回调
+        callback(res){
+            if(res.data.checkOut){
+                this.$message({
+                    message: res.msg,
+                    type: 'success'
+                })
+                this.none()
+                this.close()
+                this.$parent.RequestHttpTableData()
+            }else{
+                this.$message.error(res.msg)
+            }
+        },
+        //审核信息弹出框关闭回调
         none(){
             this.checkDesc = ''
             this.reviewvisible = false
@@ -333,7 +390,7 @@ export default {
                         addContract(JSON.parse(JSON.stringify(this.data))).then((res) => {
                             if(res.data.checkOut){
                                 this.$message(res.msg)
-                                this.close(name);
+                                this.close();
                                 this.$parent.RequestHttpTableData()
                             }else{
                                 this.$message.error(res.msg)
@@ -350,14 +407,6 @@ export default {
                 }
             });
         },
-        //提交并审核表单
-        submitReview(name){
-            this.close(name);
-        },
-        //取消回调
-        cancel(name){
-            this.close(name);
-        },
         //打开子弹出框
         dialogChildVisible(formName,title){
             this.$refs[formName].validate((valid) => {
@@ -368,6 +417,7 @@ export default {
                 }
             });
         },
+        //打开查看审核信息回调
         dialogReview(e){
             this.$refs.reviewpopup.open(e)
         }

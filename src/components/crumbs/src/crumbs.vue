@@ -26,9 +26,11 @@ import { mapState } from 'vuex'
 export default { 
     name: "crumbs",
     computed:{
+        //获取tab列表
         ...mapState({
             openTab: state => state.openTab
         }),
+        //获取并设置当前显示的tab
         activeIndex: {
             get(){
                 return this.$store.state.activeIndex
@@ -44,10 +46,12 @@ export default {
         }
     },
     methods: {
+        //点击tab回调
         tabClick(){
             let path = this.activeIndex;
             this.$router.push({path:path})
         },
+        //删除tab回调
         removeTab(targerName){
             //首页不可删除  
             if (targerName == '/contractmanagement'){

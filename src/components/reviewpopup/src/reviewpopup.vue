@@ -12,24 +12,28 @@
 </template>
 
 <script>
-import {getCheckDescInfo} from '@/api/index.js'
+import {getCheckDescInfo} from '@/api/contractmanagement.js'
 export default {
     name: 'reviewpopup',
     data(){
         return {
             visible: false,
-            info: '暂无信息'
+            info: ''
         }
     },
     methods: {
+        //打开方法获取审核信息
         open(e){
             getCheckDescInfo({ contractCustomNumber: e}).then( res => {
                 if(res.data.checkDesc != null){
                     this.info = res.data.checkDesc
+                }else{
+                    this.info = '暂无信息'
                 }
                 this.visible = true
             })
         },
+        //关闭方法
         close(){
             this.visible = false;
         }

@@ -65,7 +65,7 @@
                 </el-table-column>
             </el-table>
             <span slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="submit()">提 交</el-button>
+                <el-button v-if="checksumbit" type="primary" @click="submit()">提 交</el-button>
                 <el-button @click="cancel('addchildpopup')">取 消</el-button>
             </span>
         </el-dialog>
@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { projectTeam,teamInfo,getAllBusinessType,moneyProportion,selfMoney } from '@/api/index.js'
+import { projectTeam,teamInfo,getAllBusinessType,moneyProportion,selfMoney } from '@/api/contractmanagement.js'
 export default {
     name: 'addchildpopup',
     data(){
@@ -85,6 +85,7 @@ export default {
             team:[],//成员信息列表
             divisionList: [],//分工列表
             list: {},//父页面信息
+            title: '',
             fromdata: {//当前部门信息
                 id: 1,
                 money: "0",
@@ -123,6 +124,12 @@ export default {
                 })
                 return publicMoney
             }
+        },
+        checksumbit(){
+            if(this.title == '查看合同'){
+                return false
+            }
+            return true
         }
     },
     methods: {
@@ -249,6 +256,7 @@ export default {
             this.RequestHttp();
             this.list = JSON.parse(JSON.stringify(list))
             this.listNew = this.list.listNew
+            this.title = title
             if(title == '查看合同'){
                 this.disabled = true
             }else{

@@ -47,7 +47,7 @@ export default {
     },
     data(){
         return {
-            imgSrc: require("assets/admin.png"),
+            imgSrc: require("../../../assets/admin.png"),//背景图片
             form: {//绑定用户信息
                 username: "",
                 password: ""
@@ -61,32 +61,7 @@ export default {
                 background: "rgba(0,0,0,0.5)"
             },
             //没过滤的数据类表
-            menuData: [
-                // {
-                //     "name": "合同管理",
-                //     "path": "/contractmanagement",
-                //     "component": 'pages/contractmanagement',
-                //     "icon": 'el-icon-s-platform',
-                //     "children": false
-                // },
-                // {
-                //     "name": "数据展示",
-                //     "path": "",
-                //     "component": '',
-                //     "icon": 'el-icon-s-marketing',
-                //     "children": [
-                //         {
-                //             "name": "数据",
-                //             "path": "/datapresentation",
-                //             "component": 'pages/datapresentation',
-                //             "icon": 'el-icon-s-marketing',
-                //             "children": false
-                //         }
-                //     ]
-                // },
-            ],
-            //过滤后的数据列表
-            itemList: []
+            menuData: [],
         }
     },
     methods: {
