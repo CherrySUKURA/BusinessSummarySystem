@@ -35,7 +35,7 @@
                             </el-select>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="6">
+                    <el-col :span="18">
                         <el-form-item>
                             <el-button type="primary" @click="onSubmit()">查询合同</el-button>
                             <el-button type="primary" @click="reset()">重置查询</el-button>
