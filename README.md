@@ -1,5 +1,7 @@
 # ordersystem
 
+## 预览地址 https://www.hotmine.cn/hotmanage/
+
 ## Project setup
 ```
 npm install
