@@ -55,7 +55,6 @@ export default {
             if(value.toString() == ''){
                 callback('请输入分成比例')
             }
-            debugger
             if(parseFloat(value) > 1){
                 callback('分成比例不能大于1')
             }

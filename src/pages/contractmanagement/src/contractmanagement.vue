@@ -58,7 +58,7 @@
                 </el-table-column>
                 <el-table-column prop="entryTime" :show-overflow-tooltip="true" label="入账时间" :formatter="getTimeStr" min-width="120" align="center">
                 </el-table-column>
-                <el-table-column prop="estimatedContractAmount" :show-overflow-tooltip="true" label="收入总金额(元)" min-width="100" align="center">
+                <el-table-column prop="estimatedContractAmount" :show-overflow-tooltip="true" label="收入总金额(元)" min-width="120" align="center">
                 </el-table-column>
                 <el-table-column prop="outsourcingCostEstimation" :show-overflow-tooltip="true" label="第三方费用" min-width="100" align="center">
                 </el-table-column>

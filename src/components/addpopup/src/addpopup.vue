@@ -384,7 +384,6 @@ export default {
         submitForm(name,value){
             this.$refs[name].validate((valid) => {
                 if (valid) {
-                    debugger
                     if(this.data.listNew.length !== 0){
                         this.data.checkStatus = value
                         addContract(JSON.parse(JSON.stringify(this.data))).then((res) => {
